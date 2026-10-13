@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Entorno virtual
+.venv/
+venv/
+
+# Pytest
+.pytest_cache/
+
+# Ruff
+.ruff_cache/
+
+# Variables de entorno
+.env
+
+# Base de datos local
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE
+.vs/
+.vscode/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+commit-log.txt
