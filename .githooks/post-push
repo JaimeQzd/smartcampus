@@ -1,0 +1,4 @@
+#!/bin/sh
+
+#mostramos un mensaje despues de realizar correctamente el push
+echo "Cambios enviados correctamente al repositorio remoto."
