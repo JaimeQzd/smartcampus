@@ -3,7 +3,6 @@ from pydantic import ValidationError
 
 from app import schemas, services
 
-
 #datos de ejemplo para los tests unitarios
 ROOM_DATA = {
     "nombre": "Laboratorio de Informática",

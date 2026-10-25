@@ -6,7 +6,6 @@ from sqlalchemy.orm import sessionmaker
 from app.database import Base, get_db
 from app.main import app
 
-
 #Establecemos la base de datos con la que realizaremos las pruebas 
 TEST_DATABASE_URL = "sqlite:///./test_smartcampus.db"
 

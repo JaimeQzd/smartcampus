@@ -1,5 +1,6 @@
 from pydantic import BaseModel, ConfigDict, Field
 
+
 # Definimos los datos que el usuario debe enviar
 class RoomCreate(BaseModel):
     nombre: str
