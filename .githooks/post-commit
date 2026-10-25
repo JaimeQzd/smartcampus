@@ -1,0 +1,18 @@
+#!/bin/sh
+
+#obtenemos la informacion del ultimo commit realizado
+AUTHOR=$(git log -1 --pretty=format:"%an")
+DATE=$(git log -1 --pretty=format:"%ad" --date=short)
+HASH=$(git log -1 --pretty=format:"%h")
+MESSAGE=$(git log -1 --pretty=format:"%s")
+
+#guardamos la informacion en un fichero local
+{
+    echo "Autor: $AUTHOR"
+    echo "Fecha: $DATE"
+    echo "Hash: $HASH"
+    echo "Mensaje: $MESSAGE"
+    echo "----------------------------------------"
+} >> commit-log.txt
+
+echo "Registro del commit actualizado en commit-log.txt"
