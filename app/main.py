@@ -1,10 +1,9 @@
 #importamos desde fastapi nuestra FastAPI
 from fastapi import Depends, FastAPI, HTTPException
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-#importamos los modelos, esquemas y la conexion con la base de datos
-from app import models, schemas
+#importamos los modelos, esquemas, servicios y la conexion con la base de datos
+from app import models, schemas, services
 from app.database import engine, get_db
 
 
@@ -28,7 +27,6 @@ def health():
 
 
 #creamos una nueva aula
-#recibimos los datos mediante RoomCreate
 @app.post(
     "/rooms",
     response_model=schemas.RoomResponse,
@@ -38,20 +36,13 @@ def create_room(
     room: schemas.RoomCreate,
     db: Session = Depends(get_db),
 ):
-    #creamos un objeto Room con los datos recibidos
-    new_room = models.Room(
-        nombre=room.nombre,
-        edificio=room.edificio,
-        capacidad=room.capacidad,
-        equipamiento=room.equipamiento,
+    #utilizamos services.py para crear y guardar el aula
+    new_room = services.create_room(
+        db=db,
+        room=room,
     )
 
-    #añadimos el aula
-    db.add(new_room)
-    #guardamos los cambios
-    db.commit()
-    #actualizamos el objeto
-    db.refresh(new_room)
+    #devolvemos el aula creada
     return new_room
 
 
@@ -63,14 +54,13 @@ def create_room(
 def get_rooms(
     db: Session = Depends(get_db),
 ):
-    #preparamos una consulta que selecciona todas las aulas
-    statement = select(models.Room)
-    #ejecutamos la consulta y obtenemos los resultados
-    rooms = db.scalars(statement).all()
+    #utilizamos services.py para obtener todas las aulas
+    rooms = services.get_rooms(db)
+
     return rooms
 
 
-#consultamos un aula con el id
+#consultamos un aula mediante su id
 @app.get(
     "/rooms/{room_id}",
     response_model=schemas.RoomResponse,
@@ -79,8 +69,12 @@ def get_room(
     room_id: int,
     db: Session = Depends(get_db),
 ):
-    #buscamos el aula por id
-    room = db.get(models.Room, room_id)
+    #buscamos el aula mediante services.py
+    room = services.get_room_by_id(
+        db=db,
+        room_id=room_id,
+    )
+
     #si el aula no existe devolvemos un error 404
     if room is None:
         raise HTTPException(
@@ -88,10 +82,11 @@ def get_room(
             detail="Aula no encontrada",
         )
 
+    #si existe devolvemos sus datos
     return room
 
 
-#eliminamos un aula por su id
+#eliminamos un aula mediante su id
 @app.delete(
     "/rooms/{room_id}",
     status_code=204,
@@ -100,8 +95,12 @@ def delete_room(
     room_id: int,
     db: Session = Depends(get_db),
 ):
-    #buscamos el aula que queremos eliminar
-    room = db.get(models.Room, room_id)
+    #buscamos primero el aula que queremos eliminar
+    room = services.get_room_by_id(
+        db=db,
+        room_id=room_id,
+    )
+
     #si el aula no existe devolvemos un error 404
     if room is None:
         raise HTTPException(
@@ -109,9 +108,10 @@ def delete_room(
             detail="Aula no encontrada",
         )
 
-    #eliminamos el aula 
-    db.delete(room)
-    #guardamos  los cambios
-    db.commit()
+    #utilizamos services.py para eliminar el aula
+    services.delete_room(
+        db=db,
+        room=room,
+    )
 
     return None

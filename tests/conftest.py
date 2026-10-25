@@ -50,6 +50,15 @@ def reset_database():
 
     Base.metadata.drop_all(bind=test_engine)
 
+#Sesion de bd para los test unitarios
+@pytest.fixture
+def db_session():
+    db = TestingSessionLocal()
+
+    try:
+        yield db
+    finally:
+        db.close()
 
 #creamos un cliente para realizar peticiones HTTP
 @pytest.fixture
