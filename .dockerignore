@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+.git/
+.githooks/
+
+.env
+*.db
+*.sqlite
+*.sqlite3
+
+commit-log.txt
