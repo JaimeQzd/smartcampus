@@ -125,3 +125,94 @@ Después de un push correcto se muestra:
 ```text
 Cambios enviados correctamente al repositorio remoto.
 ```
+
+## Docker
+
+La aplicación puede ejecutarse dentro de un contenedor Docker.
+
+El proyecto utiliza una imagen basada en Python y ejecuta la aplicación FastAPI mediante Uvicorn.
+
+### Construir la imagen
+
+```bash
+docker build -t smartcampus .
+```
+
+### Docker Compose
+
+El proyecto incluye un archivo `docker-compose.yml` que permite iniciar la aplicación de forma automatizada.
+
+Para construir e iniciar el servicio:
+
+```bash
+docker compose up --build
+```
+
+Para ejecutarlo en segundo plano:
+
+```bash
+docker compose up -d
+```
+
+Para detener los contenedores:
+
+```bash
+docker compose down
+```
+
+### Servicio backend
+
+Docker Compose define el servicio `backend`, encargado de ejecutar la API SmartCampus.
+
+La aplicación queda disponible en:
+
+```text
+http://127.0.0.1:8000
+```
+
+La documentación Swagger está disponible en:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+El endpoint de comprobación de estado es:
+
+```text
+GET /health
+```
+
+### Healthcheck
+
+Docker Compose incluye un `healthcheck` que consulta periódicamente el endpoint `/health`.
+
+El estado del contenedor puede comprobarse mediante:
+
+```bash
+docker compose ps
+```
+
+Cuando la aplicación funciona correctamente, el contenedor aparece con estado:
+
+```text
+healthy
+```
+
+### Persistencia
+
+La aplicación utiliza SQLite y un volumen Docker denominado `smartcampus-data`.
+
+Este volumen permite conservar la base de datos aunque el contenedor sea eliminado y creado de nuevo.
+
+### Variables de entorno
+
+El archivo `.env.example` contiene las variables de configuración necesarias:
+
+```env
+APP_ENV=development
+DATABASE_URL=sqlite:////data/smartcampus.db
+HOST=0.0.0.0
+PORT=8000
+```
+
+El archivo `.env` real no se almacena en Git.

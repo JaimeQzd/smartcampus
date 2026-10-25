@@ -1,0 +1,54 @@
+services:
+  backend:
+    #construimos la imagen utilizando el Dockerfile 
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: smartcampus-backend
+
+    #cargamos las variables de entorno
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      DATABASE_URL: ${DATABASE_URL:-sqlite:////data/smartcampus.db}
+      HOST: ${HOST:-0.0.0.0}
+      PORT: ${PORT:-8000}
+
+    #conectamos el puerto del ordenador con el puerto del contenedor
+    ports:
+      - "${PORT:-8000}:8000"
+
+    #guardamos la base de datos fuera del contenedor
+    volumes:
+      - smartcampus-data:/data
+
+    #conectamos el servicio a una red propia
+    networks:
+      - smartcampus-network
+
+    #comprobamos periódicamente que la API sigue funcionando
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+    restart: unless-stopped
+
+
+#volumen utilizado para conservar la base de datos 
+volumes:
+  smartcampus-data:
+
+
+#red utilizada por los servicios del proyecto
+networks:
+  smartcampus-network:
+    driver: bridge
