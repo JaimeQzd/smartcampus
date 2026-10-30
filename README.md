@@ -216,3 +216,35 @@ PORT=8000
 ```
 
 El archivo `.env` real no se almacena en Git.
+
+
+## Gestión de reservas
+
+La aplicación permite gestionar reservas de aulas universitarias.
+
+### Endpoints
+
+```text
+GET    /bookings
+POST   /bookings
+DELETE /bookings/{id}
+```
+
+### Reglas de negocio
+
+- No se puede reservar un aula inexistente.
+- La hora de inicio debe ser anterior a la hora de finalización.
+- No se permiten reservas solapadas para la misma aula y fecha.
+- No se puede eliminar una reserva inexistente.
+
+Una reserva contiene:
+
+- `id`
+- `aula_id`
+- `usuario`
+- `fecha`
+- `hora_inicio`
+- `hora_fin`
+
+Los tests de reservas incluyen casos correctos y casos de error,
+incluyendo aula inexistente, hora incorrecta y solapamientos.

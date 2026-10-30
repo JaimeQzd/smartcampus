@@ -6,11 +6,11 @@ from sqlalchemy.orm import Session
 from app import models, schemas, services
 from app.database import engine, get_db
 
-# SQLAlchemy revisa los modelos definidos en models.py y crea las tablas que todavia no existan
+
+# SQLAlchemy crea las tablas que todavia no existan
 models.Base.metadata.create_all(bind=engine)
 
 
-# creamos la aplicacion FastAPI
 app = FastAPI(
     title="SmartCampus API",
     description="API para la gestión de aulas y reservas universitarias",
@@ -18,7 +18,7 @@ app = FastAPI(
 )
 
 
-# tipo que utilizaremos para obtener una sesion de bd
+# tipo reutilizable para obtener una sesion de base de datos
 DbSession = Annotated[Session, Depends(get_db)]
 
 
@@ -28,7 +28,10 @@ def health():
     return {"status": "ok"}
 
 
-# creamos una nueva aula
+# -------------------------
+# ENDPOINTS DE AULAS
+# -------------------------
+
 @app.post(
     "/rooms",
     response_model=schemas.RoomResponse,
@@ -38,17 +41,12 @@ def create_room(
     room: schemas.RoomCreate,
     db: DbSession,
 ):
-    # utilizamos services.py para crear y guardar el aula
-    new_room = services.create_room(
+    return services.create_room(
         db=db,
         room=room,
     )
 
-    # devolvemos el aula
-    return new_room
 
-
-# consultamos las aulas existentes
 @app.get(
     "/rooms",
     response_model=list[schemas.RoomResponse],
@@ -56,13 +54,9 @@ def create_room(
 def get_rooms(
     db: DbSession,
 ):
-    # utilizamos services.py para obtener todas las aulas
-    rooms = services.get_rooms(db)
-
-    return rooms
+    return services.get_rooms(db)
 
 
-# consultamos un aula por su id
 @app.get(
     "/rooms/{room_id}",
     response_model=schemas.RoomResponse,
@@ -71,24 +65,20 @@ def get_room(
     room_id: int,
     db: DbSession,
 ):
-    # buscamos el aula por services.py
     room = services.get_room_by_id(
         db=db,
         room_id=room_id,
     )
 
-    # si el aula no existe devolvemos un error 404
     if room is None:
         raise HTTPException(
             status_code=404,
             detail="Aula no encontrada",
         )
 
-    # si existe devolvemos sus datos
     return room
 
 
-# eliminamos un aula por su id
 @app.delete(
     "/rooms/{room_id}",
     status_code=204,
@@ -97,21 +87,104 @@ def delete_room(
     room_id: int,
     db: DbSession,
 ):
-    # buscamos el aula que queremos eliminar
     room = services.get_room_by_id(
         db=db,
         room_id=room_id,
     )
 
-    # si el aula no existe devolvemos un error 404
     if room is None:
         raise HTTPException(
             status_code=404,
             detail="Aula no encontrada",
         )
 
-    # utilizamos services.py para eliminar el aula
     services.delete_room(
         db=db,
         room=room,
+    )
+
+
+# -------------------------
+# ENDPOINTS DE RESERVAS
+# -------------------------
+
+@app.get(
+    "/bookings",
+    response_model=list[schemas.BookingResponse],
+)
+def get_bookings(
+    db: DbSession,
+):
+    return services.get_bookings(db)
+
+
+@app.post(
+    "/bookings",
+    response_model=schemas.BookingResponse,
+    status_code=201,
+)
+def create_booking(
+    booking: schemas.BookingCreate,
+    db: DbSession,
+):
+    # no se puede reservar un aula inexistente
+    room = services.get_room_by_id(
+        db=db,
+        room_id=booking.aula_id,
+    )
+
+    if room is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Aula no encontrada",
+        )
+
+    # la hora de inicio debe ser anterior a la hora de fin
+    if not services.is_valid_time_range(
+        booking.hora_inicio,
+        booking.hora_fin,
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="La hora de inicio debe ser anterior a la hora de fin",
+        )
+
+    # no permitimos reservas solapadas
+    if services.has_booking_overlap(
+        db=db,
+        booking=booking,
+    ):
+        raise HTTPException(
+            status_code=409,
+            detail="La reserva se solapa con otra reserva existente",
+        )
+
+    return services.create_booking(
+        db=db,
+        booking=booking,
+    )
+
+
+@app.delete(
+    "/bookings/{booking_id}",
+    status_code=204,
+)
+def delete_booking(
+    booking_id: int,
+    db: DbSession,
+):
+    booking = services.get_booking_by_id(
+        db=db,
+        booking_id=booking_id,
+    )
+
+    if booking is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Reserva no encontrada",
+        )
+
+    services.delete_booking(
+        db=db,
+        booking=booking,
     )
